@@ -1,4 +1,4 @@
-# FlowSynx CSV Plugin – FlowSynx Platform Integration
+## FlowSynx CSV Plugin – FlowSynx Platform Integration
 
 The CSV Plugin is a pre-packaged, plug-and-play integration component for the FlowSynx engine. It enables reading from and writing to CSV files with configurable parameters such as file path, delimiter, headers, and encoding. Designed for FlowSynx’s no-code/low-code automation workflows, this plugin simplifies data extraction and transformation tasks.
 
