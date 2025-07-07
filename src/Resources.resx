@@ -126,6 +126,9 @@
   <data name="ReflectionBasedAccessIsNotAllowed" xml:space="preserve">
     <value>Reflection-based access is not allowed.</value>
   </data>
+  <data name="TheEnteredDataIsInvalid" xml:space="preserve">
+    <value>The entered data is invalid for '{0}'</value>
+  </data>
   <data name="ThePathIsNotDirectory" xml:space="preserve">
     <value>The entered path is not a directory.</value>
   </data>

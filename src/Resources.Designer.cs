@@ -88,6 +88,15 @@ namespace FlowSynx.Plugins.Csv {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The entered data is invalid for &apos;{0}&apos;.
+        /// </summary>
+        internal static string TheEnteredDataIsInvalid {
+            get {
+                return ResourceManager.GetString("TheEnteredDataIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The entered path is not a directory..
         /// </summary>
         internal static string ThePathIsNotDirectory {

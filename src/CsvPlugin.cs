@@ -32,7 +32,7 @@ public class CsvPlugin: IPlugin
         Name = "Csv",
         CompanyName = "FlowSynx",
         Description = Resources.PluginDescription,
-        Version = new PluginVersion(1, 1, 0),
+        Version = new PluginVersion(1, 1, 1),
         Category = PluginCategory.Data,
         Authors = new List<string> { "FlowSynx" },
         Copyright = "© FlowSynx. All rights reserved.",
@@ -49,6 +49,7 @@ public class CsvPlugin: IPlugin
 
     private Dictionary<string, ICsvOperationHandler> OperationMap => new(StringComparer.OrdinalIgnoreCase)
     {
+        ["read"] = new ReadOperationHandler(),
         ["filter"] = new FilterOperationHandler(),
         ["map"] = new MapOperationHandler()
     };
@@ -84,7 +85,7 @@ public class CsvPlugin: IPlugin
         }
 
         var context = ParseDataToContext(inputParameter.Data);
-        var csv = context.Content ?? throw new ArgumentException("Input CSV is required.");
+        var csv = ReadDataFromPluginContext(context, inputParameter);
 
         using var reader = new StringReader(csv);
         using var csvReader = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -130,6 +131,57 @@ public class CsvPlugin: IPlugin
             string strData => new PluginContext(_guidProvider.NewGuid().ToString(), "Data") { Content = strData },
             _ => throw new NotSupportedException("Unsupported input data format.")
         };
+    }
+
+    private string ReadDataFromPluginContext(PluginContext pluginContext, InputParameter inputParameter)
+    {
+        if (pluginContext.Content is not null)
+            return pluginContext.Content;
+        else if (pluginContext.StructuredData is not null)
+            return StructuredDataToCsv(pluginContext.StructuredData, inputParameter.Delimiter);
+        else
+            throw new InvalidDataException(string.Format(Resources.TheEnteredDataIsInvalid, pluginContext.Id));
+    }
+
+    private string StructuredDataToCsv(List<Dictionary<string, object>>? data, string? delimiter = ",")
+    {
+        if (data == null || data.Count == 0)
+            return string.Empty;
+
+        using var writer = new StringWriter();
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            Delimiter = delimiter ?? ",",
+            HasHeaderRecord = true,
+            TrimOptions = TrimOptions.Trim,
+            DetectColumnCountChanges = true,
+            BadDataFound = null
+        };
+
+        using var csv = new CsvWriter(writer, config);
+
+        // Get all unique headers
+        var headers = data.SelectMany(d => d.Keys).Distinct().ToList();
+
+        // Write headers
+        foreach (var header in headers)
+        {
+            csv.WriteField(header);
+        }
+        csv.NextRecord();
+
+        // Write rows
+        foreach (var row in data)
+        {
+            foreach (var header in headers)
+            {
+                row.TryGetValue(header, out var value);
+                csv.WriteField(value);
+            }
+            csv.NextRecord();
+        }
+
+        return writer.ToString();
     }
 
     private async Task<string> ToCsvStringAsync(IEnumerable<ExpandoObject> records, InputParameter inputParameter)
