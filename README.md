@@ -21,6 +21,7 @@ The CSV Plugin allows FlowSynx users to:
 
 - **filter**: Filters rows in the CSV using defined `Filter` conditions. Supports logical operations (`and`, `or`) and common operators like `equals`, `contains`, `startsWith`, `endsWith`, `greaterThan`, and `lessThan`.  
 - **map**: Maps existing fields in the CSV to a new subset of keys or column arrangement for simplified output.
+- **read**: Reads the structured object (e.g., from database) and returns it as a CSV data.
 
 ---
 
