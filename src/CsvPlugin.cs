@@ -32,7 +32,7 @@ public class CsvPlugin: IPlugin
         Name = "Csv",
         CompanyName = "FlowSynx",
         Description = Resources.PluginDescription,
-        Version = new PluginVersion(1, 1, 1),
+        Version = new Version(1, 1, 1),
         Category = PluginCategory.Data,
         Authors = new List<string> { "FlowSynx" },
         Copyright = "© FlowSynx. All rights reserved.",
@@ -41,6 +41,7 @@ public class CsvPlugin: IPlugin
         RepositoryUrl = "https://github.com/flowsynx/plugin-csv",
         ProjectUrl = "https://flowsynx.io",
         Tags = new List<string>() { "flowSynx", "csv", "comma-separated-values", "data", "data-platform" },
+        MinimumFlowSynxVersion = new Version(1, 1, 1),
     };
 
     public PluginSpecifications? Specifications { get; set; }
