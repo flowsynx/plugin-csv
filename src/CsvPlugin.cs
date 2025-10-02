@@ -112,11 +112,17 @@ public class CsvPlugin: IPlugin
         var result = handler.Handle(records, inputParameter);
         var csvString = await ToCsvStringAsync(result, inputParameter);
 
+        var structuredData = result
+            .Select(expando => ((IDictionary<string, object?>)expando)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value as object))
+            .ToList();
+
         string filename = $"{_guidProvider.NewGuid()}.csv";
         return new PluginContext(filename, "Data")
         {
             Format = "Csv",
-            Content = csvString
+            Content = csvString,
+            StructuredData = structuredData
         };
     }
 
