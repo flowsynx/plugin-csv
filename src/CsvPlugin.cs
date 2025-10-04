@@ -32,7 +32,7 @@ public class CsvPlugin: IPlugin
         Name = "Csv",
         CompanyName = "FlowSynx",
         Description = Resources.PluginDescription,
-        Version = new Version(1, 2, 1),
+        Version = new Version(1, 2, 2),
         Category = PluginCategory.Data,
         Authors = new List<string> { "FlowSynx" },
         Copyright = "© FlowSynx. All rights reserved.",
@@ -212,7 +212,6 @@ public class CsvPlugin: IPlugin
             foreach (var header in headerRow)
             {
                 csvWriter.WriteField(header);
-                _logger?.LogInfo($"Column: '{header}'");
             }
             await csvWriter.NextRecordAsync();
 
@@ -223,16 +222,12 @@ public class CsvPlugin: IPlugin
                 foreach (var value in values.Values)
                 {
                     csvWriter.WriteField(value);
-                    _logger?.LogInfo($"Value: '{value}'");
                 }
                 await csvWriter.NextRecordAsync();
             }
         }
 
         await csvWriter.FlushAsync();
-
-        _logger?.LogInfo(writer.ToString());
-
         return writer.ToString();
     }
 }
