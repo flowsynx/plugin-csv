@@ -1,10 +1,8 @@
 # FlowSynx CSV Plugin
 
-The CSV Plugin is a pre-packaged, plug-and-play integration component for the FlowSynx engine. It enables reading from and writing to CSV files with configurable parameters such as file path, delimiter, headers, and encoding. Designed for FlowSynx’s no-code/low-code automation workflows, this plugin simplifies data extraction and transformation tasks.
+The CSV Plugin is a pre-packaged, plug-and-play integration component for the FlowSynx engine. It enables reading from and writing to CSV files with configurable parameters such as file path, delimiter, headers, and encoding. Designed for FlowSynxâ€™s no-code/low-code automation workflows, this plugin simplifies data extraction and transformation tasks.
 
 This plugin is automatically installed by the FlowSynx engine when selected within the platform. It is not intended for manual installation or standalone developer use outside the FlowSynx environment.
-
----
 
 ## Purpose
 
@@ -15,15 +13,11 @@ The CSV Plugin allows FlowSynx users to:
 - Filter CSV data based on conditions.
 - Transform CSV data inline for downstream workflows.
 
----
-
 ## Supported Operations
 
 - **filter**: Filters rows in the CSV using defined `Filter` conditions. Supports logical operations (`and`, `or`) and common operators like `equals`, `contains`, `startsWith`, `endsWith`, `greaterThan`, and `lessThan`.  
 - **map**: Maps existing fields in the CSV to a new subset of keys or column arrangement for simplified output.
 - **read**: Reads the structured object (e.g., from database) and returns it as a CSV data.
-
----
 
 ## Input Parameters
 
@@ -34,6 +28,7 @@ The plugin accepts the following parameters:
 - `Delimiter` (string): Optional. Defaults to `,`. The character used to separate fields in the CSV.  
 - `Mappings` (list): **Required for `map` operation.** Defines which fields to include in the output.  
 - `IgnoreBlankLines` (bool): Optional. Specifies whether blank lines in the CSV should be ignored (`true`) or treated as data rows (`false`). Defaults to `true`.  
+- `HasHeader` (bool): Optional. Indicates if the first row of the CSV contains headers (`true`) or data (`false`). Defaults to `true`.  
 - `Filters` (object): Optional. Used with the `filter` operation to define filtering criteria.  
 
 ### Example input
@@ -44,11 +39,10 @@ The plugin accepts the following parameters:
   "Data": { ... },
   "Mappings": ["LastName", "Email"],
   "IgnoreBlankLines": true,
+  "HasHeader": true,
   "Delimiter": ","
 }
 ```
-
----
 
 ## Operation Examples
 
@@ -71,6 +65,7 @@ CustomerID,FirstName,LastName,Email,Phone,Country
   "Data": { ... },
   "Mappings": ["LastName", "Email"],
   "IgnoreBlankLines": true,
+  "HasHeader": true,
   "Delimiter": ","
 }
 ```
@@ -84,8 +79,6 @@ Patel,raj.patel@example.com
 Schmidt,anna.schmidt@example.com
 Gonzalez,maria.gonzalez@example.com
 ```
-
----
 
 ### filter Operation
 
@@ -120,6 +113,7 @@ CustomerID,FirstName,LastName,Email,Phone,Country
     ]
   },
   "IgnoreBlankLines": true,
+  "HasHeader": true,
   "Delimiter": ","
 }
 ```
@@ -133,12 +127,10 @@ CustomerID,FirstName,LastName,Email,Phone,Country
 
 ## Debugging Tips
 
-- Ensure that the `Delimiter` matches the file’s actual separator (`,` for standard CSV, `;` or `\t` for others).  
+- Ensure that the `Delimiter` matches the fileâ€™s actual separator (`,` for standard CSV, `;` or `\t` for others).  
 - Validate that `Mappings` and `Filters` reference columns that exist in the CSV header row.  
 - If unexpected rows are excluded or included during filtering, check the logical operators (`and` / `or`) and ensure that data types align (e.g., string comparisons for string fields).  
 - To troubleshoot encoding issues, verify that the CSV input uses UTF-8 or specify encoding explicitly if supported by FlowSynx.  
-
----
 
 ## Security Notes
 
@@ -146,8 +138,6 @@ CustomerID,FirstName,LastName,Email,Phone,Country
 - All operations run in a secure sandbox within FlowSynx.
 - Only authorized platform users can view or modify configurations.
 
----
-
 ## License
 
-© FlowSynx. All rights reserved.
+Â© FlowSynx. All rights reserved.

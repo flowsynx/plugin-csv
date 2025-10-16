@@ -34,6 +34,7 @@ The plugin accepts the following parameters:
 - `Delimiter` (string): Optional. Defaults to `,`. The character used to separate fields in the CSV.  
 - `Mappings` (list): **Required for `map` operation.** Defines which fields to include in the output.  
 - `IgnoreBlankLines` (bool): Optional. Specifies whether blank lines in the CSV should be ignored (`true`) or treated as data rows (`false`). Defaults to `true`.  
+- `HasHeader` (bool): Optional. Indicates if the first row of the CSV contains headers (`true`) or data (`false`). Defaults to `true`.  
 - `Filters` (object): Optional. Used with the `filter` operation to define filtering criteria.  
 
 ### Example input
@@ -44,6 +45,7 @@ The plugin accepts the following parameters:
   "Data": { ... },
   "Mappings": ["LastName", "Email"],
   "IgnoreBlankLines": true,
+  "HasHeader": true,
   "Delimiter": ","
 }
 ```
@@ -71,6 +73,7 @@ CustomerID,FirstName,LastName,Email,Phone,Country
   "Data": { ... },
   "Mappings": ["LastName", "Email"],
   "IgnoreBlankLines": true,
+  "HasHeader": true,
   "Delimiter": ","
 }
 ```
@@ -120,6 +123,7 @@ CustomerID,FirstName,LastName,Email,Phone,Country
     ]
   },
   "IgnoreBlankLines": true,
+  "HasHeader": true,
   "Delimiter": ","
 }
 ```
@@ -150,4 +154,4 @@ CustomerID,FirstName,LastName,Email,Phone,Country
 
 ## License
 
-Copyright FlowSynx. All rights reserved.
+© FlowSynx. All rights reserved.
