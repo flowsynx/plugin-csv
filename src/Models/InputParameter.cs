@@ -6,6 +6,7 @@ internal class InputParameter
     public object? Data { get; set; }
     public string? Delimiter { get; set; } = ",";
     public bool? IgnoreBlankLines { get; set; } = true;
+    public bool? HasHeader { get; set; } = true;
     public IEnumerable<string>? Mappings { get; set; }
     public object? Filters { get; set; }
 }

@@ -26,13 +26,13 @@ public class CsvPlugin: IPlugin
         _reflectionGuard = reflectionGuard ?? throw new ArgumentNullException(nameof(reflectionGuard));
     }
 
-    public PluginMetadata Metadata => new PluginMetadata
+    public PluginMetadata Metadata => new()
     {
         Id = Guid.Parse("81c99765-9581-4f13-ba77-86c32ae21d97"),
         Name = "Csv",
         CompanyName = "FlowSynx",
         Description = Resources.PluginDescription,
-        Version = new Version(1, 2, 2),
+        Version = new Version(1, 2, 3),
         Category = PluginCategory.Data,
         Authors = new List<string> { "FlowSynx" },
         Copyright = "© FlowSynx. All rights reserved.",
@@ -93,7 +93,7 @@ public class CsvPlugin: IPlugin
         {
             Delimiter = inputParameter.Delimiter ?? ",",
             IgnoreBlankLines = inputParameter.IgnoreBlankLines ?? true,
-            HasHeaderRecord = true,
+            HasHeaderRecord = inputParameter.HasHeader ?? true,
             TrimOptions = TrimOptions.Trim,
             DetectColumnCountChanges = true,
             BadDataFound = null
@@ -145,12 +145,12 @@ public class CsvPlugin: IPlugin
         if (pluginContext.Content is not null)
             return pluginContext.Content;
         else if (pluginContext.StructuredData is not null)
-            return StructuredDataToCsv(pluginContext.StructuredData, inputParameter.Delimiter);
+            return StructuredDataToCsv(pluginContext.StructuredData, inputParameter.Delimiter, inputParameter.HasHeader);
         else
             throw new InvalidDataException(string.Format(Resources.TheEnteredDataIsInvalid, pluginContext.Id));
     }
 
-    private string StructuredDataToCsv(List<Dictionary<string, object>>? data, string? delimiter = ",")
+    private string StructuredDataToCsv(List<Dictionary<string, object>>? data, string? delimiter = ",", bool? hasHeader = true)
     {
         if (data == null || data.Count == 0)
             return string.Empty;
@@ -159,7 +159,7 @@ public class CsvPlugin: IPlugin
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             Delimiter = delimiter ?? ",",
-            HasHeaderRecord = true,
+            HasHeaderRecord = hasHeader ?? true,
             TrimOptions = TrimOptions.Trim,
             DetectColumnCountChanges = true,
             BadDataFound = null
@@ -198,7 +198,7 @@ public class CsvPlugin: IPlugin
         {
             Delimiter = inputParameter.Delimiter ?? ",",
             IgnoreBlankLines = inputParameter.IgnoreBlankLines ?? true,
-            HasHeaderRecord = true,
+            HasHeaderRecord = inputParameter.HasHeader ?? true,
             TrimOptions = TrimOptions.Trim,
             DetectColumnCountChanges = true,
             BadDataFound = null
