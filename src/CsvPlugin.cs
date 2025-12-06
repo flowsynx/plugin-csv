@@ -1,21 +1,18 @@
 ﻿using FlowSynx.PluginCore.Helpers;
 using FlowSynx.PluginCore;
-using FlowSynx.Plugins.Csv.Models;
 using FlowSynx.PluginCore.Extensions;
 using FlowSynx.Plugins.Csv.Services;
-using CsvHelper.Configuration;
-using CsvHelper;
-using System.Globalization;
-using System.Dynamic;
+using FlowSynx.Plugins.Csv.Operations;
+using FlowSynx.Plugins.Csv.Parameters;
 
 namespace FlowSynx.Plugins.Csv;
 
-public class CsvPlugin: IPlugin
+public class CsvPlugin : IPlugin
 {
     private IPluginLogger? _logger;
     private readonly IGuidProvider _guidProvider;
     private readonly IReflectionGuard _reflectionGuard;
-    private CsvPluginSpecifications _csvSenderSpecifications = null!;
+    private CsvPluginSpecifications? _specifications = null;
     private bool _isInitialized;
 
     public CsvPlugin() : this(new GuidProvider(), new DefaultReflectionGuard()) { }
@@ -32,7 +29,7 @@ public class CsvPlugin: IPlugin
         Name = "Csv",
         CompanyName = "FlowSynx",
         Description = Resources.PluginDescription,
-        Version = new Version(1, 2, 3),
+        Version = new Version(1, 3, 0),
         Category = PluginCategory.Data,
         Authors = new List<string> { "FlowSynx" },
         Copyright = "© FlowSynx. All rights reserved.",
@@ -41,35 +38,40 @@ public class CsvPlugin: IPlugin
         RepositoryUrl = "https://github.com/flowsynx/plugin-csv",
         ProjectUrl = "https://flowsynx.io",
         Tags = new List<string>() { "flowSynx", "csv", "comma-separated-values", "data", "data-platform" },
-        MinimumFlowSynxVersion = new Version(1, 1, 1),
+        MinimumFlowSynxVersion = new Version(1, 3, 0),
     };
 
-    public PluginSpecifications? Specifications { get; set; }
+    public IPluginSpecifications? Specifications => _specifications;
 
-    public Type SpecificationsType => typeof(CsvPluginSpecifications);
-
-    private Dictionary<string, ICsvOperationHandler> OperationMap => new(StringComparer.OrdinalIgnoreCase)
+    public IReadOnlyCollection<IPluginOperation> SupportedOperations { get; } = new IPluginOperation[]
     {
-        ["read"] = new ReadOperationHandler(),
-        ["filter"] = new FilterOperationHandler(),
-        ["map"] = new MapOperationHandler()
+        new ReadOperation(),
+        new FilterOperation(),
+        new MapOperation()
     };
 
-    public IReadOnlyCollection<string> SupportedOperations => OperationMap.Keys;
-
-    public Task Initialize(IPluginLogger logger)
+    public Task InitializeAsync(IPluginLogger logger, IDictionary<string, object?>? specifications)
     {
         if (ReflectionHelper.IsCalledViaReflection())
             throw new InvalidOperationException(Resources.ReflectionBasedAccessIsNotAllowed);
 
-        ArgumentNullException.ThrowIfNull(logger);
-        _csvSenderSpecifications = Specifications.ToObject<CsvPluginSpecifications>();
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        var csvSpecifications = new CsvPluginSpecifications();
+        if (specifications != null)
+            csvSpecifications.FromDictionary(specifications);
+
+        csvSpecifications.Validate();
+        _specifications = csvSpecifications;
+
         _isInitialized = true;
         return Task.CompletedTask;
     }
 
-    public async Task<object?> ExecuteAsync(PluginParameters parameters, CancellationToken cancellationToken)
+    public async Task<object?> ExecuteAsync(
+        string? operationName,
+        PluginParameters parameters, 
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -79,155 +81,22 @@ public class CsvPlugin: IPlugin
         if (!_isInitialized)
             throw new InvalidOperationException($"Plugin '{Metadata.Name}' v{Metadata.Version} is not initialized.");
 
-        var inputParameter = parameters.ToObject<InputParameter>();
-        if (!OperationMap.TryGetValue(inputParameter.Operation, out var handler))
+        var operation = SupportedOperations
+            .FirstOrDefault(op => string.Equals(op.Name, operationName, StringComparison.OrdinalIgnoreCase))
+            ?? throw new NotSupportedException($"Operation '{operationName}' is not supported.");
+
+        return operation.Name.ToLowerInvariant() switch
         {
-            throw new NotSupportedException($"Operation '{inputParameter.Operation}' is not supported.");
-        }
+            "read" => await ((ReadOperation)operation)
+                            .ExecuteAsync(parameters.ToObject<ReadParameters>(), cancellationToken),
 
-        var context = ParseDataToContext(inputParameter.Data);
-        var csv = ReadDataFromPluginContext(context, inputParameter);
+            "filter" => await ((FilterOperation)operation)
+                            .ExecuteAsync(parameters.ToObject<FilterParameters>(), cancellationToken),
 
-        using var reader = new StringReader(csv);
-        using var csvReader = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            Delimiter = inputParameter.Delimiter ?? ",",
-            IgnoreBlankLines = inputParameter.IgnoreBlankLines ?? true,
-            HasHeaderRecord = inputParameter.HasHeader ?? true,
-            TrimOptions = TrimOptions.Trim,
-            DetectColumnCountChanges = true,
-            BadDataFound = null
-        });
+            "map" => await ((MapOperation)operation)
+                            .ExecuteAsync(parameters.ToObject<MapParameters>(), cancellationToken),
 
-        var records = csvReader.GetRecords<dynamic>().Select(row =>
-        {
-            var expando = new ExpandoObject() as IDictionary<string, object?>;
-            foreach (var kvp in (IDictionary<string, object?>)row)
-            {
-                expando[kvp.Key] = kvp.Value;
-            }
-            return (ExpandoObject)expando;
-        }).ToList();
-
-        var result = handler.Handle(records, inputParameter);
-        var csvString = await ToCsvStringAsync(result, inputParameter);
-
-        var structuredData = result
-            .Select(expando => ((IDictionary<string, object?>)expando)
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value as object))
-            .ToList();
-
-        string filename = $"{_guidProvider.NewGuid()}.csv";
-        return new PluginContext(filename, "Data")
-        {
-            Format = "Csv",
-            Content = csvString,
-            StructuredData = structuredData
+            _ => throw new InvalidOperationException($"Unsupported operation: {operation.Name}")
         };
-    }
-
-    private PluginContext ParseDataToContext(object? data)
-    {
-        if (data is null)
-            throw new ArgumentNullException(nameof(data), "Input data cannot be null.");
-
-        return data switch
-        {
-            PluginContext singleContext => singleContext,
-            IEnumerable<PluginContext> => throw new NotSupportedException("List of PluginContext is not supported."),
-            string strData => new PluginContext(_guidProvider.NewGuid().ToString(), "Data") { Content = strData },
-            _ => throw new NotSupportedException("Unsupported input data format.")
-        };
-    }
-
-    private string ReadDataFromPluginContext(PluginContext pluginContext, InputParameter inputParameter)
-    {
-        if (pluginContext.Content is not null)
-            return pluginContext.Content;
-        else if (pluginContext.StructuredData is not null)
-            return StructuredDataToCsv(pluginContext.StructuredData, inputParameter.Delimiter, inputParameter.HasHeader);
-        else
-            throw new InvalidDataException(string.Format(Resources.TheEnteredDataIsInvalid, pluginContext.Id));
-    }
-
-    private string StructuredDataToCsv(List<Dictionary<string, object>>? data, string? delimiter = ",", bool? hasHeader = true)
-    {
-        if (data == null || data.Count == 0)
-            return string.Empty;
-
-        using var writer = new StringWriter();
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            Delimiter = delimiter ?? ",",
-            HasHeaderRecord = hasHeader ?? true,
-            TrimOptions = TrimOptions.Trim,
-            DetectColumnCountChanges = true,
-            BadDataFound = null
-        };
-
-        using var csv = new CsvWriter(writer, config);
-
-        // Get all unique headers
-        var headers = data.SelectMany(d => d.Keys).Distinct().ToList();
-
-        // Write headers
-        foreach (var header in headers)
-        {
-            csv.WriteField(header);
-        }
-        csv.NextRecord();
-
-        // Write rows
-        foreach (var row in data)
-        {
-            foreach (var header in headers)
-            {
-                row.TryGetValue(header, out var value);
-                csv.WriteField(value);
-            }
-            csv.NextRecord();
-        }
-
-        return writer.ToString();
-    }
-
-    private async Task<string> ToCsvStringAsync(IEnumerable<ExpandoObject> records, InputParameter inputParameter)
-    {
-        using var writer = new StringWriter();
-        using var csvWriter = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            Delimiter = inputParameter.Delimiter ?? ",",
-            IgnoreBlankLines = inputParameter.IgnoreBlankLines ?? true,
-            HasHeaderRecord = inputParameter.HasHeader ?? true,
-            TrimOptions = TrimOptions.Trim,
-            DetectColumnCountChanges = true,
-            BadDataFound = null
-        });
-
-        // Write header
-        var firstRecord = records.FirstOrDefault();
-        if (firstRecord is not null)
-        {
-            var headerRow = ((IDictionary<string, object?>)firstRecord).Keys;
-            foreach (var header in headerRow)
-            {
-                csvWriter.WriteField(header);
-            }
-            await csvWriter.NextRecordAsync();
-
-            // Write rows
-            foreach (var record in records)
-            {
-                var values = (IDictionary<string, object?>)record;
-                foreach (var value in values.Values)
-                {
-                    csvWriter.WriteField(value);
-                }
-                await csvWriter.NextRecordAsync();
-            }
-        }
-
-        await csvWriter.FlushAsync();
-        return writer.ToString();
     }
 }

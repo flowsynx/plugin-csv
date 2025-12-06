@@ -1,4 +1,4 @@
-# FlowSynx CSV Plugin
+## FlowSynx CSV Plugin
 
 The CSV Plugin is a pre-packaged, plug-and-play integration component for the FlowSynx engine. It enables reading from and writing to CSV files with configurable parameters such as file path, delimiter, headers, and encoding. Designed for FlowSynx’s no-code/low-code automation workflows, this plugin simplifies data extraction and transformation tasks.
 
@@ -15,18 +15,20 @@ The CSV Plugin allows FlowSynx users to:
 
 ## Supported Operations
 
+- **read**: Converts a structured object (e.g., rows from a database, in-memory objects) into CSV output using the provided parameters (e.g., delimiter, headers).  
 - **filter**: Filters rows in the CSV using defined `Filter` conditions. Supports logical operations (`and`, `or`) and common operators like `equals`, `contains`, `startsWith`, `endsWith`, `greaterThan`, and `lessThan`.  
 - **map**: Maps existing fields in the CSV to a new subset of keys or column arrangement for simplified output.
-- **read**: Reads the structured object (e.g., from database) and returns it as a CSV data.
+
+Minimum FlowSynx version: 1.3.0.
 
 ## Input Parameters
 
 The plugin accepts the following parameters:
 
-- `Operation` (string): **Required.** The type of operation to perform. Supported values are `filter` and `map`.  
-- `Data` (string/object): **Required.** The raw CSV string to process.  
+- `Operation` (string): Required. The type of operation to perform. Supported values are `read`, `filter`, and `map`.  
+- `Data` (string/object): Required. The input to process. For `filter` and `map`, provide a raw CSV string. For `read`, provide a structured object or rows to convert to CSV.  
 - `Delimiter` (string): Optional. Defaults to `,`. The character used to separate fields in the CSV.  
-- `Mappings` (list): **Required for `map` operation.** Defines which fields to include in the output.  
+- `Mappings` (list): Required for `map` operation. Defines which fields to include in the output.  
 - `IgnoreBlankLines` (bool): Optional. Specifies whether blank lines in the CSV should be ignored (`true`) or treated as data rows (`false`). Defaults to `true`.  
 - `HasHeader` (bool): Optional. Indicates if the first row of the CSV contains headers (`true`) or data (`false`). Defaults to `true`.  
 - `Filters` (object): Optional. Used with the `filter` operation to define filtering criteria.  
@@ -35,7 +37,6 @@ The plugin accepts the following parameters:
 
 ```json
 {
-  "Operation": "map",
   "Data": { ... },
   "Mappings": ["LastName", "Email"],
   "IgnoreBlankLines": true,
@@ -45,6 +46,19 @@ The plugin accepts the following parameters:
 ```
 
 ## Operation Examples
+
+### read Operation
+
+**Input Data (object):**
+
+```json
+{ 
+    "Data": [ /* csv string or structured rows */ ], 
+    "IgnoreBlankLines": true,
+    "HasHeader": true, 
+    "Delimiter": ","
+}
+```
 
 ### map Operation
 
@@ -61,7 +75,6 @@ CustomerID,FirstName,LastName,Email,Phone,Country
 **Input Parameters:**
 ```json
 {
-  "Operation": "map",
   "Data": { ... },
   "Mappings": ["LastName", "Email"],
   "IgnoreBlankLines": true,
@@ -95,7 +108,6 @@ CustomerID,FirstName,LastName,Email,Phone,Country
 **Input Parameters:**
 ```json
 {
-  "Operation": "filter",
   "Data": { ... },
   "Filters": {
     "Logic": "and",
