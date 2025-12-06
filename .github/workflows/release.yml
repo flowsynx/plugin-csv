@@ -9,7 +9,7 @@ on:
         type: string
 
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: '10.0.x'
   ARTIFACT_DIR: ./release
   PUBLISH_DIR: ${{ github.workspace }}/publish
   DIST_DIR: ${{ github.workspace }}/dist
@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3.2.0
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
