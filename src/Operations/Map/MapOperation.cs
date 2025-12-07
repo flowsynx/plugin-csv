@@ -2,12 +2,11 @@
 using CsvHelper.Configuration;
 using FlowSynx.PluginCore;
 using FlowSynx.Plugins.Csv.Helpers;
-using FlowSynx.Plugins.Csv.Parameters;
 using FlowSynx.Plugins.Csv.Services;
 using System.Dynamic;
 using System.Globalization;
 
-namespace FlowSynx.Plugins.Csv.Operations;
+namespace FlowSynx.Plugins.Csv.Operations.Map;
 
 internal class MapOperation : IPluginOperation<MapParameters, PluginContext>
 {

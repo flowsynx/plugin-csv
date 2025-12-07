@@ -2,8 +2,9 @@
 using FlowSynx.PluginCore;
 using FlowSynx.PluginCore.Extensions;
 using FlowSynx.Plugins.Csv.Services;
-using FlowSynx.Plugins.Csv.Operations;
-using FlowSynx.Plugins.Csv.Parameters;
+using FlowSynx.Plugins.Csv.Operations.Read;
+using FlowSynx.Plugins.Csv.Operations.Map;
+using FlowSynx.Plugins.Csv.Operations.Filter;
 
 namespace FlowSynx.Plugins.Csv;
 

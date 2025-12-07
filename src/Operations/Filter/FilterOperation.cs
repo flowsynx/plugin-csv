@@ -3,13 +3,12 @@ using CsvHelper.Configuration;
 using FlowSynx.PluginCore;
 using FlowSynx.Plugins.Csv.Helpers;
 using FlowSynx.Plugins.Csv.Models;
-using FlowSynx.Plugins.Csv.Parameters;
 using FlowSynx.Plugins.Csv.Services;
 using System.Dynamic;
 using System.Globalization;
 using System.Text.Json;
 
-namespace FlowSynx.Plugins.Csv.Operations;
+namespace FlowSynx.Plugins.Csv.Operations.Filter;
 
 internal class FilterOperation : IPluginOperation<FilterParameters, PluginContext>
 {
@@ -28,7 +27,9 @@ internal class FilterOperation : IPluginOperation<FilterParameters, PluginContex
         if (!isJson)
             throw new ArgumentException("Invalid filter structure.");
 
-        var rootGroup = JsonSerializer.Deserialize<FilterGroup>(parameters.Filters?.ToString()!);
+        // Use case-insensitive property name matching so JSON like {"logic":..., "filters":...} binds correctly
+        var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var rootGroup = JsonSerializer.Deserialize<FilterGroup>(parameters.Filters?.ToString()!, jsonOptions);
 
         if (rootGroup is null)
             throw new ArgumentException("Invalid filter structure.");
@@ -60,7 +61,7 @@ internal class FilterOperation : IPluginOperation<FilterParameters, PluginContex
         }).ToList();
 
         var result = records.Where(row => EvaluateFilterGroup(row, rootGroup)).ToList();
-        var csvString = await helper.ToCsvStringAsync(records, parameters.Delimiter, parameters.IgnoreBlankLines, parameters.HasHeader);
+        var csvString = await helper.ToCsvStringAsync(result, parameters.Delimiter, parameters.IgnoreBlankLines, parameters.HasHeader);
 
 
 

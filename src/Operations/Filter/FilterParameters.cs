@@ -1,8 +1,8 @@
 ﻿using FlowSynx.PluginCore;
 
-namespace FlowSynx.Plugins.Csv.Parameters;
+namespace FlowSynx.Plugins.Csv.Operations.Filter;
 
-public class MapParameters
+public class FilterParameters
 {
     [OperationParameterMetadata(Description = "The delimiter used in the CSV content.", IsRequired = false)]
     public string? Delimiter { get; set; } = ",";
@@ -13,9 +13,9 @@ public class MapParameters
     [OperationParameterMetadata(Description = "Indicates whether to ignore blank lines in the CSV content.", IsRequired = false)]
     public bool? IgnoreBlankLines { get; set; } = true;
 
-    [OperationParameterMetadata(Description = "The CSV data to be mapped.", IsRequired = true)]
+    [OperationParameterMetadata(Description = "The CSV data to be filtered.", IsRequired = true)]
     public object? Data { get; set; }
 
-    [OperationParameterMetadata(Description = "The list of column names to map.", IsRequired = true)]
-    public IEnumerable<string>? Mappings { get; set; }
+    [OperationParameterMetadata(Description = "Filter conditions in JSON format.", IsRequired = true)]
+    public object? Filters { get; set; }
 }

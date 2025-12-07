@@ -1,6 +1,6 @@
 ﻿using FlowSynx.PluginCore;
 
-namespace FlowSynx.Plugins.Csv.Parameters;
+namespace FlowSynx.Plugins.Csv.Operations.Read;
 
 public class ReadParameters
 {
